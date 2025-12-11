@@ -5,7 +5,7 @@ description: Build and deploy this Stripe One-Time Payment application. Use when
 
 # Build and Deploy Stripe One-Time Payment
 
-> **CRITICAL: For Vercel, use `vercel build --prod` then `vercel deploy --prebuilt --prod`.**
+This is an Express.js backend application. Deploying to serverless platforms (Vercel/Netlify) requires creating API wrapper files.
 
 ## Tech Stack
 
@@ -15,77 +15,170 @@ description: Build and deploy this Stripe One-Time Payment application. Use when
 - **Package Manager**: npm
 - **Port**: 4242
 
-## Workflow
+## Environment Variables
 
-### 1. Install Dependencies
+**Required:**
+- `STRIPE_SECRET_KEY` - Your Stripe secret key (sk_test_xxx or sk_live_xxx)
+- `STRIPE_PUBLISHABLE_KEY` - Your Stripe publishable key (pk_test_xxx or pk_live_xxx)
 
-```bash
-npm install
+**Optional (auto-created if not set):**
+- `PRICE` - Price ID from Stripe Dashboard. If not set, a $20 sample product will be auto-created.
+- `DOMAIN` - Your production domain (auto-detected if not set)
+
+## Deploy to Vercel
+
+### Step 1: Create Serverless API Wrapper
+
+Create `api/index.js`:
+
+```javascript
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2024-11-20.acacia',
+});
+
+let PRICE_ID = process.env.PRICE;
+let initialized = false;
+
+async function ensureProductAndPrice() {
+  if (initialized && PRICE_ID) return PRICE_ID;
+  if (PRICE_ID) { initialized = true; return PRICE_ID; }
+
+  const existingProducts = await stripe.products.list({ limit: 10 });
+  let product = existingProducts.data.find(p => p.metadata?.created_by === 'eng0-stripe-one-time-payment');
+
+  if (!product) {
+    product = await stripe.products.create({
+      name: 'Sample Product',
+      description: 'A sample product for one-time payment demo',
+      metadata: { created_by: 'eng0-stripe-one-time-payment' }
+    });
+  }
+
+  const existingPrices = await stripe.prices.list({ product: product.id, active: true, limit: 1 });
+  let price = existingPrices.data[0];
+  if (!price) {
+    price = await stripe.prices.create({ product: product.id, unit_amount: 2000, currency: 'usd' });
+  }
+
+  PRICE_ID = price.id;
+  initialized = true;
+  return PRICE_ID;
+}
+
+module.exports = async (req, res) => {
+  const path = req.url.split('?')[0];
+
+  if (path === '/config') {
+    const priceId = await ensureProductAndPrice();
+    const price = await stripe.prices.retrieve(priceId);
+    return res.json({ publicKey: process.env.STRIPE_PUBLISHABLE_KEY, unitAmount: price.unit_amount, currency: price.currency });
+  }
+
+  if (path === '/checkout-session') {
+    const session = await stripe.checkout.sessions.retrieve(req.query.sessionId);
+    return res.json(session);
+  }
+
+  if (path === '/create-checkout-session' && req.method === 'POST') {
+    const priceId = await ensureProductAndPrice();
+    const host = req.headers.host;
+    const domainURL = process.env.DOMAIN || `https://${host}`;
+    const quantity = req.body?.quantity || 1;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price: priceId, quantity: parseInt(quantity) }],
+      success_url: `${domainURL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${domainURL}/canceled.html`,
+    });
+
+    res.setHeader('Location', session.url);
+    return res.status(303).end();
+  }
+
+  return res.status(404).json({ error: 'Not found' });
+};
 ```
 
-### 2. Verify Environment Variables
+### Step 2: Create Vercel Config
 
-Ensure these are set in your environment or `.env` file:
-- `STRIPE_SECRET_KEY` - Your Stripe secret key
-- `STRIPE_PUBLISHABLE_KEY` - Your Stripe publishable key
-- `PRICE` - Price ID from Stripe Dashboard
-- `DOMAIN` - Your production domain (e.g., https://your-app.vercel.app)
+Create `vercel.json`:
 
-### 3. Deploy
-
-**Vercel (Recommended):**
-
-```bash
-vercel pull --yes -t $VERCEL_TOKEN
-vercel build --prod -t $VERCEL_TOKEN
-vercel deploy --prebuilt --prod --yes -t $VERCEL_TOKEN
+```json
+{
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": "client/html",
+  "rewrites": [
+    { "source": "/config", "destination": "/api" },
+    { "source": "/checkout-session", "destination": "/api" },
+    { "source": "/create-checkout-session", "destination": "/api" }
+  ]
+}
 ```
 
-Set environment variables in Vercel:
+### Step 3: Set Environment Variables
+
 ```bash
-vercel env add STRIPE_SECRET_KEY production
-vercel env add STRIPE_PUBLISHABLE_KEY production
-vercel env add PRICE production
-vercel env add DOMAIN production
+printf "YOUR_SECRET_KEY" | vercel env add STRIPE_SECRET_KEY production -t $VERCEL_TOKEN
+printf "YOUR_PUBLISHABLE_KEY" | vercel env add STRIPE_PUBLISHABLE_KEY production -t $VERCEL_TOKEN
 ```
 
-**Netlify:**
+### Step 4: Deploy
 
-For Netlify, you'll need to convert to Netlify Functions. Create `netlify/functions/api.js`:
+```bash
+vercel --prod -t $VERCEL_TOKEN --yes
+```
+
+## Deploy to Netlify
+
+### Step 1: Create Netlify Function
+
+Create `netlify/functions/api.js` with similar serverless handler logic.
+
+### Step 2: Create Netlify Config
+
+Create `netlify.toml`:
+
+```toml
+[build]
+  publish = "client/html"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/config"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/checkout-session"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/create-checkout-session"
+  to = "/.netlify/functions/api"
+  status = 200
+```
+
+### Step 3: Deploy
 
 ```bash
 netlify deploy --prod
 ```
 
-## Going Live Checklist
-
-1. **Switch API Keys**: Replace test keys (sk_test_/pk_test_) with live keys (sk_live_/pk_live_)
-2. **Create Live Products**: Create products in Stripe Dashboard Live mode
-3. **Complete KYC**: Finish Stripe account verification
-4. **Update DOMAIN**: Set to your production URL
-5. **Test Live Payment**: Make a small real payment to verify
-
-## Environment Variables for Production
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `STRIPE_SECRET_KEY` | Live secret key | sk_live_xxx |
-| `STRIPE_PUBLISHABLE_KEY` | Live publishable key | pk_live_xxx |
-| `PRICE` | Live price ID | price_xxx |
-| `DOMAIN` | Production URL | https://your-app.vercel.app |
-| `PORT` | Server port (optional) | 4242 |
-
-## Development
+## Local Development
 
 ```bash
+npm install
 npm start
 ```
 
 Opens at http://localhost:4242
 
-## Notes
+## Going Live Checklist
 
-- Test mode uses cards like 4242 4242 4242 4242
-- No webhook configuration required
-- Payment verification via Checkout Session status polling
-- Supports quantity selection (1-10 items)
+1. Replace test keys (sk_test_/pk_test_) with live keys (sk_live_/pk_live_)
+2. Create products in Stripe Dashboard Live mode (or let auto-create)
+3. Complete Stripe account verification (KYC)
+4. Test with a real payment
