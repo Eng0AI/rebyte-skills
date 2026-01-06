@@ -74,7 +74,7 @@ python ~/.claude/skills/deep-research/research_engine.py --query "Your research 
 
 ## Output
 
-Research reports are saved to organized folders in `~/Documents/[Topic]_Research_[Date]/`
+Research reports are saved to organized folders in `/code/[Topic]_Research_[Date]/`
 
 Each report includes:
 - Executive Summary

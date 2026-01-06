@@ -204,13 +204,13 @@ python scripts/validate_report.py --report [path]
 
 **File Organization (CRITICAL - Clean Accessibility):**
 
-**1. Create Organized Folder in Documents:**
-- ALWAYS create dedicated folder: `~/Documents/[TopicName]_Research_[YYYYMMDD]/`
+**1. Create Organized Folder in /code:**
+- ALWAYS create dedicated folder: `/code/[TopicName]_Research_[YYYYMMDD]/`
 - Extract clean topic name from research question (remove special chars, use underscores/CamelCase)
 - Examples:
-  - "psilocybin research 2025" → `~/Documents/Psilocybin_Research_20251104/`
-  - "compare React vs Vue" → `~/Documents/React_vs_Vue_Research_20251104/`
-  - "AI safety trends" → `~/Documents/AI_Safety_Trends_Research_20251104/`
+  - "psilocybin research 2025" → `/code/Psilocybin_Research_20251104/`
+  - "compare React vs Vue" → `/code/React_vs_Vue_Research_20251104/`
+  - "AI safety trends" → `/code/AI_Safety_Trends_Research_20251104/`
 - If folder exists, use it; if not, create it
 - This ensures clean organization and easy accessibility
 
@@ -305,7 +305,7 @@ Before considering a section complete, verify:
 
 **Deliver to user:**
 1. Executive summary (inline in chat)
-2. Organized folder path (e.g., "All files saved to: ~/Documents/Psilocybin_Research_20251104/")
+2. Organized folder path (e.g., "All files saved to: /code/Psilocybin_Research_20251104/")
 3. Confirmation of all three formats generated:
    - Markdown (source)
    - HTML (McKinsey-style, opened in browser)
@@ -318,8 +318,8 @@ Before considering a section complete, verify:
 **Phase 8.1: Setup**
 ```bash
 # Extract topic slug from research question
-# Create folder: ~/Documents/[TopicName]_Research_[YYYYMMDD]/
-mkdir -p ~/Documents/[folder_name]
+# Create folder: /code/[TopicName]_Research_[YYYYMMDD]/
+mkdir -p /code/[folder_name]
 
 # Create initial markdown file with frontmatter
 # File path: [folder]/research_report_[YYYYMMDD]_[slug].md
