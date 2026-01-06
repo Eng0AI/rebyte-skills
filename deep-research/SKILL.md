@@ -218,7 +218,7 @@ python scripts/validate_report.py --report [path]
 
 **Markdown (Primary Source):**
 - Save to: `[Documents folder]/research_report_[YYYYMMDD]_[topic_slug].md`
-- Also save copy to: `~/.claude/research_output/` (internal tracking)
+- Also save copy to: `/code/research_output/` (internal tracking)
 - Full detailed report with all findings
 
 **HTML (McKinsey Style - ALWAYS GENERATE):**
@@ -442,13 +442,13 @@ After generating sections, check word count:
 - Generate Bibliography (all citations)
 - Generate Methodology
 - Verify complete report
-- Save copy to ~/.claude/research_output/
+- Save copy to /code/research_output/
 - Done! ✓
 
 **If total output will exceed 18,000 words:** Auto-Continuation Protocol
 
 **Step 1: Save Continuation State**
-Create file: `~/.claude/research_output/continuation_state_[report_id].json`
+Create file: `/code/research_output/continuation_state_[report_id].json`
 
 ```json
 {
@@ -512,7 +512,7 @@ Task(
 CONTINUATION TASK: You are continuing an existing deep-research report.
 
 CRITICAL INSTRUCTIONS:
-1. Read continuation state file: ~/.claude/research_output/continuation_state_[report_id].json
+1. Read continuation state file: /code/research_output/continuation_state_[report_id].json
 2. Read existing report to understand context: [file_path from state]
 3. Read LAST 3 completed sections to understand flow and style
 4. Load research context: themes, narrative arc, writing style from state
