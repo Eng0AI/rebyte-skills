@@ -1,0 +1,15 @@
+# Financial Deep Research Skill - Requirements
+# All dependencies are Python standard library - no external packages needed
+
+# The following are included with Python 3.8+:
+# - argparse (CLI argument parsing)
+# - re (regex for validation)
+# - pathlib (file path handling)
+# - dataclasses (data structures)
+# - typing (type hints)
+# - datetime (date handling)
+# - urllib (HTTP requests for citation verification)
+# - json (JSON parsing)
+# - hashlib (citation ID generation)
+
+# No pip install required!

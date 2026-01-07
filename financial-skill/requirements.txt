@@ -1,0 +1,10 @@
+# Financial Skill - Requirements
+
+# Core dependency - EdgarTools for SEC filing analysis
+edgartools
+
+# For AI features (optional - enables Claude skill installation)
+# pip install "edgartools[ai]"
+
+# No other external dependencies required
+# EdgarTools handles all SEC API communication
