@@ -1,0 +1,13 @@
+# Generated images
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
