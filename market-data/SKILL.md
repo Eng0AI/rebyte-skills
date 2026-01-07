@@ -1,9 +1,9 @@
 ---
-name: financial-data
-description: Access US stock market data including price bars, news with sentiment, and company details via eng0 data API. Use when user asks for stock prices, OHLCV data, price history, stock news, or company information. Triggers include "stock price", "price history", "OHLCV", "stock news", "company info", "market data", "ticker data". Do NOT use for SEC filings (use financial-skill instead).
+name: market-data
+description: Access US stock market data including price bars, news with sentiment, and company details via eng0 data API. Use when user asks for stock prices, OHLCV data, price history, stock news, or company information. Triggers include "stock price", "price history", "OHLCV", "stock news", "company info", "market data", "ticker data". Do NOT use for SEC filings (use sec-edgar-skill instead).
 ---
 
-# Financial Data API
+# Market Data API
 
 Access US stock market data through eng0's data proxy service.
 
@@ -307,14 +307,14 @@ print(f"{details['name']}: Market Cap ${details['marketCap']:,}")
 
 ---
 
-## Combining with Other Financial Skills
+## Combining with Other Skills
 
 This skill provides **market data**. Combine with:
 
-- **financial-skill** (EdgarTools) → SEC filings, financial statements
+- **sec-edgar-skill** (EdgarTools) → SEC filings, financial statements
 - **financial-deep-research** → Full research workflow and reports
 
 **Example combined workflow:**
 1. Get company details and recent price bars (this skill)
-2. Get SEC filings and financial statements (financial-skill)
+2. Get SEC filings and financial statements (sec-edgar-skill)
 3. Generate comprehensive research report (financial-deep-research)

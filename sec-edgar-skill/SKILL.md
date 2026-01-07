@@ -1,9 +1,9 @@
 ---
-name: financial-skill
-description: SEC filing analysis and financial research using EdgarTools. Use when user asks about SEC filings, company financials, 10-K/10-Q analysis, insider trading, revenue trends, or financial comparisons. Triggers include "SEC filing", "10-K", "10-Q", "8-K", "company financials", "revenue", "earnings", "insider trading", "financial statements". Do NOT use for real-time stock prices or non-SEC data.
+name: sec-edgar-skill
+description: SEC EDGAR filing analysis using EdgarTools. Use when user asks about SEC filings, company financials, 10-K/10-Q analysis, insider trading, revenue trends, or financial comparisons. Triggers include "SEC filing", "10-K", "10-Q", "8-K", "EDGAR", "company financials", "revenue", "earnings", "insider trading", "financial statements". Do NOT use for real-time stock prices or market data (use market-data skill instead).
 ---
 
-# Financial Skill - SEC Filing Analysis
+# SEC EDGAR Skill - Filing Analysis
 
 ## Prerequisites
 
