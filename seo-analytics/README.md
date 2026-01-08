@@ -5,11 +5,21 @@ Generate visual SEO analysis reports using Google PageSpeed Insights API.
 ## Usage
 
 ```bash
-# Run the analysis
-npx ts-node analyze.ts https://eng0.ai
+# Run the analysis with API key
+npx ts-node analyze.ts https://eng0.ai YOUR_API_KEY
+
+# Or with environment variable
+PAGESPEED_API_KEY=your_key npx ts-node analyze.ts https://eng0.ai
 
 # Output: ./seo-report.html
 ```
+
+## API Key Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create/select a project
+3. Enable **PageSpeed Insights API** in APIs & Services > Library
+4. Create an API key in APIs & Services > Credentials
 
 ## Features
 
@@ -17,7 +27,7 @@ npx ts-node analyze.ts https://eng0.ai
 - Core Web Vitals (LCP, TBT, CLS, FCP, SI, TTI)
 - Interactive radar chart comparison
 - Optimization recommendations
-- No API key required (uses free PageSpeed Insights API)
+- API key recommended for reliable access
 
 ## Report Contents
 

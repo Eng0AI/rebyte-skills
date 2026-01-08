@@ -15,11 +15,46 @@ Generate comprehensive SEO and performance analysis reports for any website usin
 - "What's the page speed score of..."
 - "SEO audit for..."
 
+## API Key Requirement
+
+**IMPORTANT**: This skill requires a Google PageSpeed Insights API key. If the user has not provided an API key, you MUST ask for one before proceeding.
+
+### When No API Key is Provided
+
+If the user requests SEO analysis without providing an API key, respond with:
+
+---
+
+**To run SEO analysis, I need a Google PageSpeed Insights API key.**
+
+**How to get your API key (takes ~2 minutes):**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Navigate to **APIs & Services** > **Library**
+4. Search for "**PageSpeed Insights API**" and click **Enable**
+5. Go to **APIs & Services** > **Credentials**
+6. Click **Create Credentials** > **API Key**
+7. Copy your new API key
+
+Once you have the key, provide it and I'll run the analysis.
+
+---
+
+### API Key Usage
+
+The API key can be provided in two ways:
+1. As a command line argument: `npx ts-node analyze.ts <URL> <API_KEY>`
+2. As an environment variable: `PAGESPEED_API_KEY`
+
 ## Quick Start
 
 ```
 User: "Analyze https://eng0.ai"
 
+# If no API key provided, ask user for one first
+
+# With API key:
 Output:
 - ./seo-report.html (interactive report with charts)
 - Console summary with key metrics
@@ -30,21 +65,35 @@ Output:
 ### Step 1: Run the Analysis Script
 
 ```bash
-npx ts-node analyze.ts https://example.com
+npx ts-node analyze.ts https://example.com YOUR_API_KEY
 ```
 
-Or if ts-node is not available, use the inline approach below.
+Or with environment variable:
+```bash
+PAGESPEED_API_KEY=your_key npx ts-node analyze.ts https://example.com
+```
 
-### Step 2: Inline Execution (Preferred)
+### Step 2: Inline Execution (Alternative)
 
 Create and run `analyze.ts` in the current directory:
 
 ```typescript
 // analyze.ts - SEO Analysis Script
 const url = process.argv[2];
+const apiKey = process.argv[3] || process.env.PAGESPEED_API_KEY;
+
 if (!url) {
-  console.error('Usage: npx ts-node analyze.ts <URL>');
+  console.error('Usage: npx ts-node analyze.ts <URL> [API_KEY]');
+  console.error('Or set PAGESPEED_API_KEY environment variable');
   process.exit(1);
+}
+
+interface AuditResult {
+  title?: string;
+  description?: string;
+  score?: number | null;
+  displayValue?: string;
+  numericValue?: number;
 }
 
 interface PageSpeedResult {
@@ -56,26 +105,24 @@ interface PageSpeedResult {
       seo: { score: number };
     };
     audits: {
-      'largest-contentful-paint': { numericValue: number; displayValue: string };
-      'total-blocking-time': { numericValue: number; displayValue: string };
-      'cumulative-layout-shift': { numericValue: number; displayValue: string };
-      'first-contentful-paint': { numericValue: number; displayValue: string };
-      'speed-index': { numericValue: number; displayValue: string };
-      'interactive': { numericValue: number; displayValue: string };
-      [key: string]: { title?: string; description?: string; score?: number; displayValue?: string; numericValue?: number };
+      [key: string]: AuditResult;
     };
   };
 }
 
 async function analyzeUrl(targetUrl: string, strategy: 'mobile' | 'desktop'): Promise<PageSpeedResult> {
-  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`;
+  let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`;
+
+  if (apiKey) {
+    apiUrl += `&key=${apiKey}`;
+  }
 
   console.log(`Analyzing ${strategy}...`);
   const response = await fetch(apiUrl);
   if (!response.ok) {
     throw new Error(`API error: ${response.status} ${response.statusText}`);
   }
-  return response.json();
+  return response.json() as Promise<PageSpeedResult>;
 }
 
 function getScoreColor(score: number): string {
@@ -304,10 +351,9 @@ async function main() {
     console.log('Starting SEO analysis for:', url);
     console.log('');
 
-    const [mobile, desktop] = await Promise.all([
-      analyzeUrl(url, 'mobile'),
-      analyzeUrl(url, 'desktop'),
-    ]);
+    // Sequential requests to avoid rate limiting
+    const mobile = await analyzeUrl(url, 'mobile');
+    const desktop = await analyzeUrl(url, 'desktop');
 
     const report = generateReport(mobile, desktop, url);
 
@@ -353,7 +399,7 @@ main();
 
 Run with:
 ```bash
-npx ts-node analyze.ts https://eng0.ai
+npx ts-node analyze.ts https://eng0.ai YOUR_API_KEY
 ```
 
 ## Output

@@ -15,10 +15,22 @@
 import * as fs from 'fs';
 
 const url = process.argv[2];
+const apiKey = process.argv[3] || process.env.PAGESPEED_API_KEY;
+
 if (!url) {
-  console.error('Usage: npx ts-node analyze.ts <URL>');
-  console.error('Example: npx ts-node analyze.ts https://eng0.ai');
+  console.error('Usage: npx ts-node analyze.ts <URL> [API_KEY]');
+  console.error('Example: npx ts-node analyze.ts https://eng0.ai YOUR_API_KEY');
+  console.error('');
+  console.error('You can also set PAGESPEED_API_KEY environment variable.');
   process.exit(1);
+}
+
+interface AuditResult {
+  title?: string;
+  description?: string;
+  score?: number | null;
+  displayValue?: string;
+  numericValue?: number;
 }
 
 interface PageSpeedResult {
@@ -30,37 +42,44 @@ interface PageSpeedResult {
       seo: { score: number };
     };
     audits: {
-      'largest-contentful-paint': { numericValue: number; displayValue: string };
-      'total-blocking-time': { numericValue: number; displayValue: string };
-      'cumulative-layout-shift': { numericValue: number; displayValue: string };
-      'first-contentful-paint': { numericValue: number; displayValue: string };
-      'speed-index': { numericValue: number; displayValue: string };
-      interactive: { numericValue: number; displayValue: string };
-      [key: string]: {
-        title?: string;
-        description?: string;
-        score?: number;
-        displayValue?: string;
-        numericValue?: number;
-      };
+      [key: string]: AuditResult;
     };
   };
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function analyzeUrl(
   targetUrl: string,
-  strategy: 'mobile' | 'desktop'
+  strategy: 'mobile' | 'desktop',
+  retries = 5
 ): Promise<PageSpeedResult> {
-  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
+  let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     targetUrl
   )}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`;
 
+  if (apiKey) {
+    apiUrl += `&key=${apiKey}`;
+  }
+
   console.log(`Analyzing ${strategy}...`);
-  const response = await fetch(apiUrl);
-  if (!response.ok) {
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const response = await fetch(apiUrl);
+    if (response.ok) {
+      return response.json() as Promise<PageSpeedResult>;
+    }
+    if (response.status === 429 && attempt < retries) {
+      const waitTime = attempt * 15000; // 15s, 30s, 45s, 60s
+      console.log(`Rate limited. Waiting ${waitTime / 1000}s before retry (attempt ${attempt}/${retries})...`);
+      await delay(waitTime);
+      continue;
+    }
     throw new Error(`API error: ${response.status} ${response.statusText}`);
   }
-  return response.json();
+  throw new Error('Max retries exceeded');
 }
 
 function getScoreColor(score: number): string {
@@ -126,6 +145,7 @@ function generateReport(
   for (const [_key, audit] of Object.entries(m.audits)) {
     if (
       audit.score !== undefined &&
+      audit.score !== null &&
       audit.score < 0.9 &&
       audit.title &&
       audit.description
@@ -319,10 +339,10 @@ async function main() {
     console.log('Starting SEO analysis for:', url);
     console.log('');
 
-    const [mobile, desktop] = await Promise.all([
-      analyzeUrl(url, 'mobile'),
-      analyzeUrl(url, 'desktop'),
-    ]);
+    // Sequential requests to avoid rate limiting
+    const mobile = await analyzeUrl(url, 'mobile');
+    await delay(2000); // Wait 2s between requests
+    const desktop = await analyzeUrl(url, 'desktop');
 
     const report = generateReport(mobile, desktop, url);
 
