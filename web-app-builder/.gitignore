@@ -1,0 +1,6 @@
+# IDE
+.idea/
+.vscode/
+
+# Temp files
+*.zip
