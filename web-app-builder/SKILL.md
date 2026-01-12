@@ -1,11 +1,11 @@
 ---
 name: web-app-builder
-description: Build and deploy web apps to the cloud. Supports React, Vue, Astro, Next.js (static), vanilla HTML/CSS/JS, and serverless functions. Sites deploy to *.netlify.app with automatic SSL. Use when user asks to "deploy", "publish", "host", or make their app "live". Triggers include "deploy my app", "make it live", "publish site", "host my app", "deploy website", "put it online".
+description: Build and deploy web apps to the cloud. Supports React, Vue, Astro, Next.js (static), vanilla HTML/CSS/JS, and serverless functions. Sites deploy to *.rebyte.pro with automatic SSL. Use when user asks to "deploy", "publish", "host", or make their app "live". Triggers include "deploy my app", "make it live", "publish site", "host my app", "deploy website", "put it online".
 ---
 
 # Web App Builder
 
-Build and deploy web apps to the cloud with automatic SSL.
+Build and deploy web apps to the cloud with automatic SSL and custom subdomains.
 
 ---
 
@@ -225,12 +225,12 @@ curl -X POST https://api.rebyte.ai/api/data/netlify/deploy \
 ```json
 {
   "deployId": "my-app-x7k2",
-  "url": "https://deploy-my-app-x7k2.netlify.app",
+  "url": "https://my-app-x7k2.rebyte.pro",
   "status": "deployed"
 }
 ```
 
-**Your site is now live!** SSL is automatically enabled.
+**Your site is now live!** SSL activates in 1-2 minutes.
 
 ---
 
@@ -491,7 +491,7 @@ npm run build
 zip -r site.zip dist/ netlify/ netlify.toml
 ```
 
-Access your API at: `https://your-site.netlify.app/api/hello`
+Access your API at: `https://your-site.rebyte.pro/api/hello`
 
 ---
 
