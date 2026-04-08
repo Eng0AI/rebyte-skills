@@ -1,23 +1,11 @@
 ---
 name: langchain-retrieval-agent
-description: AI agent with retrieval tool for document Q&A using RAG and LangGraph.
+description: "Builds a document Q&A application that indexes files into a Supabase pgvector store, performs semantic search, and answers questions with cited sources using LangChain.js and LangGraph. Use when the user wants to search documents, ask questions about files, build a RAG pipeline, set up retrieval-augmented generation, or create a knowledge base with vector embeddings."
 ---
 
 # LangChain Retrieval Agent
 
-An AI agent with retrieval tool for document Q&A using RAG, powered by LangGraph.
-
-## Tech Stack
-
-- **Framework**: Next.js
-- **AI**: LangChain.js, LangGraph, AI SDK
-- **Vector Store**: Supabase pgvector
-- **Package Manager**: pnpm
-
-## Prerequisites
-
-- Supabase project with pgvector extension
-- OpenAI API key
+Set up and develop an AI-powered document Q&A application using LangChain.js, LangGraph agents, and Supabase pgvector for retrieval-augmented generation (RAG).
 
 ## Setup
 
@@ -48,20 +36,51 @@ git init
 pnpm install
 ```
 
-### 4. Setup Environment Variables
-
-- `SUPABASE_URL` - Supabase project URL
-- `SUPABASE_PRIVATE_KEY` - Supabase service role key
-- `OPENAI_API_KEY` - For embeddings and LLM
-
-## Build
+### 4. Configure Environment
 
 ```bash
-pnpm build
+cp .env.example .env
+# Set these required variables:
+# SUPABASE_URL=https://<project-ref>.supabase.co
+# SUPABASE_PRIVATE_KEY=<service-role-key>
+# OPENAI_API_KEY=<your-openai-key>
 ```
 
-## Development
+### 5. Enable pgvector in Supabase
+
+In the Supabase dashboard SQL editor, run:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### 6. Start Development Server
 
 ```bash
 pnpm dev
+```
+
+### 7. Verify Setup
+
+Open `http://localhost:3000` — the chat interface should load. Try a test query to confirm the agent responds.
+
+## Development Workflow
+
+**Ingest documents into the vector store:**
+
+1. Place documents in the designated ingestion directory
+2. Run the ingestion script to chunk, embed, and store in pgvector
+3. Verify embeddings exist: check the Supabase table via dashboard or `supabase` CLI
+
+**Customize the retrieval agent:**
+
+- Adjust chunking strategy and embedding model in the ingestion config
+- Modify the LangGraph agent's tool definitions to add custom retrieval logic
+- Tune the number of retrieved chunks (`k` parameter) for answer quality
+
+**Build for production:**
+
+```bash
+pnpm build
+pnpm start
 ```

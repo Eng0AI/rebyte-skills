@@ -1,24 +1,11 @@
 ---
 name: axum-rust-template
-description: Rust Axum API with Diesel ORM and DDD architecture.
+description: "Scaffolds Rust web APIs with Axum framework, Diesel ORM models and migrations, and Domain-Driven Design project structure. Use when building a Rust REST API, backend server, or when the user mentions Axum, Diesel, DDD architecture, or Rust web development."
 ---
 
 # Axum Rust API
 
-A Rust Axum API with Diesel ORM and DDD architecture.
-
-## Tech Stack
-
-- **Framework**: Axum
-- **Language**: Rust
-- **ORM**: Diesel
-- **Architecture**: DDD
-- **Database**: PostgreSQL
-
-## Prerequisites
-
-- Rust toolchain installed
-- PostgreSQL
+Set up and develop a Rust API using Axum with Diesel ORM and Domain-Driven Design architecture.
 
 ## Setup
 
@@ -43,18 +30,54 @@ rm -rf .git
 git init
 ```
 
-### 3. Build Project
+### 3. Configure Database
+
+```bash
+# Install Diesel CLI if not present
+cargo install diesel_cli --no-default-features --features postgres
+
+# Set database URL
+echo 'DATABASE_URL=postgres://postgres:password@localhost/axum_app' > .env
+
+# Create database and run migrations
+diesel setup
+diesel migration run
+```
+
+### 4. Build and Run
 
 ```bash
 cargo build
+cargo run
 ```
 
-### 4. Setup Database
-
-Configure database and run Diesel migrations.
-
-## Development
+### 5. Verify Setup
 
 ```bash
-cargo run
+# Server should respond (default port varies — check src/main.rs)
+curl http://localhost:3000/health
+```
+
+## Project Structure (DDD Layers)
+
+- `src/domain/` — Entities, value objects, domain logic
+- `src/application/` — Use cases, service traits
+- `src/infrastructure/` — Diesel models, repository implementations, database access
+- `src/presentation/` — Axum route handlers, request/response types
+
+## Development Workflow
+
+**Add a new entity:**
+
+1. Create a Diesel migration: `diesel migration generate create_<entity>`
+2. Define the table in the `up.sql` migration file
+3. Run the migration: `diesel migration run`
+4. Add the domain model in `src/domain/`
+5. Implement the Diesel model and repository in `src/infrastructure/`
+6. Add route handlers in `src/presentation/`
+
+**Run tests:**
+
+```bash
+cargo test
 ```
